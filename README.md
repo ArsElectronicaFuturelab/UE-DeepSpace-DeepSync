@@ -1,4 +1,4 @@
-# AefDeepSync Plugin
+# Unreal Engine 5.7 - DeepSync Plugin
 
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.7-blue)](https://unrealengine.com)
 

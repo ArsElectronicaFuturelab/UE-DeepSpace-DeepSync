@@ -12,7 +12,7 @@ Unreal Engine plugin for real-time wearable device tracking with heartrate monit
 - **Color Control** for wearable LEDs
 - **Blueprint Events** for wearable connect/disconnect
 - **AutoStart Option** - start automatically or manually
-- **Configurable Logging** via MozConfig.ini
+- **Configurable Logging** via AefConfig.ini
 
 ## Quick Start
 

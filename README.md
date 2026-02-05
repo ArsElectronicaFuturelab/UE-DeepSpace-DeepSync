@@ -100,9 +100,9 @@ DeepSyncComponent->OnHeartRateChanged.AddDynamic(this, &AMyActor::OnHRChanged);
 Requires `deepsyncwearablev2-server` running:
 
 ```powershell
-cd MozXR/DeepSync/deepsyncwearablev2-server
 dotnet run -- --ip-app 127.0.0.1 --port-app 43397 -d
 ```
+Link will be inserted when repository is ready
 
 Use `-d` flag for simulated wearables during development.
 

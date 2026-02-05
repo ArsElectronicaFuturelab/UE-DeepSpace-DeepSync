@@ -61,7 +61,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `OnWearableUpdated` - each data update
 - `OnConnectionStatusChanged` - connection state changes
 
-**Configuration (MozConfig.ini)**
+**Configuration (AefConfig.ini)**
 - `autoStart` - auto-start on subsystem init
 - `deepSyncIp` - server IP address
 - `deepSyncReceiverPort` / `deepSyncSenderPort`

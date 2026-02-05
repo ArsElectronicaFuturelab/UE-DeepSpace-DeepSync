@@ -7,7 +7,7 @@
    Manages TCP connections to the deepsyncwearablev2-server.
 
    USAGE:
-   1. Configure [DeepSync] section in MozConfig.ini
+   1. Configure [DeepSync] section in AefConfig.ini
    2. Set autoStart=true OR call StartDeepSync() manually
    3. Bind to OnWearableConnected/OnWearableLost events
    4. Use GetActiveWearables() to access current data
@@ -66,7 +66,7 @@ public:
 	// Connection Management
 	//--------------------------------------------------------------------------------
 
-	/** Start DeepSync connection (uses config from MozConfig.ini) */
+	/** Start DeepSync connection (uses config from AefConfig.ini) */
 	UFUNCTION(BlueprintCallable, Category = "AEF")
 	void StartDeepSync();
 
@@ -145,7 +145,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "AEF|DeepSync|Config")
 	FAefDeepSyncConfig GetConfig() const { return Config; }
 
-	/** Reload configuration from MozConfig.ini */
+	/** Reload configuration from AefConfig.ini */
 	UFUNCTION(BlueprintCallable, Category = "AEF|DeepSync|Config")
 	void ReloadConfiguration();
 

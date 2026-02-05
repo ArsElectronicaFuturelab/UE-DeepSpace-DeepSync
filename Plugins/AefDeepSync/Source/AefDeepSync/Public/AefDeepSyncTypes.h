@@ -118,7 +118,7 @@ enum class EAefDeepSyncConnectionStatus : uint8
 /**
  * DeepSync Configuration (Blueprint-ready)
  *
- * Runtime configuration loaded from MozConfig.ini [DeepSync] section.
+ * Runtime configuration loaded from AefConfig.ini [DeepSync] section.
  */
 USTRUCT(BlueprintType)
 struct AEFDEEPSYNC_API FAefDeepSyncConfig

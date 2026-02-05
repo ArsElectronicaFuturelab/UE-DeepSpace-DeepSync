@@ -560,11 +560,11 @@ bool UAefDeepSyncSubsystem::SendColorCommand(int32 WearableId, FAefDeepSyncColor
 
 void UAefDeepSyncSubsystem::LoadConfiguration()
 {
-	FString ConfigPath = FPaths::ProjectConfigDir() / TEXT("MozConfig.ini");
+	FString ConfigPath = FPaths::ProjectConfigDir() / TEXT("AefConfig.ini");
 
 	if (!FPaths::FileExists(ConfigPath))
 	{
-		UE_LOG(LogAefDeepSync, Warning, TEXT("MozConfig.ini not found - using defaults"));
+		UE_LOG(LogAefDeepSync, Warning, TEXT("AefConfig.ini not found - using defaults"));
 		return;
 	}
 

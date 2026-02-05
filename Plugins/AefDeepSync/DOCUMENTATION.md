@@ -44,7 +44,7 @@ The AefDeepSync plugin provides real-time wearable device tracking with heartrat
 
 ## Configuration
 
-All settings are read from `Config/MozConfig.ini` section `[DeepSync]`.
+All settings are read from `Config/AefConfig.ini` section `[DeepSync]`.
 
 ### Startup
 
@@ -191,7 +191,7 @@ bool SendColorCommand(int32 WearableId, FAefDeepSyncColor Color);
 
 ### FAefDeepSyncConfig
 
-Blueprint-accessible configuration struct with all settings from MozConfig.ini.
+Blueprint-accessible configuration struct with all settings from AefConfig.ini.
 
 ---
 

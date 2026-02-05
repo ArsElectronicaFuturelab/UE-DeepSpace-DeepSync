@@ -112,4 +112,4 @@ Use `-d` flag for simulated wearables during development.
 
 ## License
 
-Copyright (c) Ars Electronica Futurelab, 2025
+Copyright (c) Ars Electronica Futurelab, 2026

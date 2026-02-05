@@ -18,7 +18,7 @@ Unreal Engine plugin for real-time wearable device tracking with heartrate monit
 
 ### 1. Configuration
 
-Add to `Config/MozConfig.ini`:
+Add to `Config/AefConfig.ini`:
 
 ```ini
 [DeepSync]

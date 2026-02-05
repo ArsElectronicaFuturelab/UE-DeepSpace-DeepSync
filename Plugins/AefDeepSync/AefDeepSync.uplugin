@@ -1,0 +1,25 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"EngineVersion": "5.7.0",
+	"FriendlyName": "Ars Electronica Futurelab - DeepSync",
+	"Description": "",
+	"Category": "Ars Electronica Futurelab",
+	"CreatedBy": "Friedrich Bachinger|Daniel Rammer",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "AefDeepSync",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

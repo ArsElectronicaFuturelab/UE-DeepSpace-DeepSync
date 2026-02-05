@@ -1,0 +1,42 @@
+# Unreal Engine Plugin - Standalone Distribution
+# WICHTIG: DLLs, LIBs, EXEs werden NICHT ignoriert (für Blueprint-Projekte benötigt)
+
+# Intermediate Build Files
+Intermediate/
+DerivedDataCache/
+
+# Build Receipts (regenerated)
+Binaries/**/*.target
+Binaries/**/*.modules
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.sln
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# macOS
+.DS_Store
+*.dSYM/
+
+# Debug Files
+*.pdb
+
+# Temporary Files
+*.tmp
+*.temp
+*.log
+*.bak
+*~
+
+# Saved folder (user-specific)
+Saved/
+
+# Compiled Python
+*.pyc
+__pycache__/

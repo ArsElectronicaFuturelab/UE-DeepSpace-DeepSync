@@ -25,6 +25,7 @@ Add to `Config/AefConfig.ini`:
 
 ```ini
 [DeepSync]
+; Connection Configuration
 autoStart=false
 deepSyncIp=127.0.0.1
 deepSyncReceiverPort=43397
@@ -33,6 +34,15 @@ wearableLostTimeout=2.0
 
 ; Optional: Filter specific IDs (empty = allow all)
 ; wearableIds=1001, 1002, 1003
+
+; Logging Configuration
+logWearableConnected=true   ; Log when new wearables connect
+logWearableLost=true        ; Log when wearables timeout/disconnect
+logWearableUpdated=false    ; Log every data update (verbose!)
+logHeartRateChanges=false   ; Log heart rate value changes
+logColorCommands=true       ; Log color commands sent
+logConnectionStatus=true    ; Log connection status changes
+logSyncEvents=true          ; Log Pharus sync zone events
 ```
 
 ### 2. Blueprint Usage

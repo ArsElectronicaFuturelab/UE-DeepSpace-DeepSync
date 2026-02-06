@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.2.4] - 2026-02-06
+
+### Changed
+
+**Logging Configuration Overhaul**
+- Replaced generic logging flags with granular controls in `AefConfig.ini`:
+  - `logWearableConnected` - Log when new wearables connect
+  - `logWearableLost` - Log when wearables timeout/disconnect
+  - `logWearableUpdated` - Log every wearable data update (verbose!)
+  - `logHeartRateChanges` - Log heart rate value changes
+  - `logColorCommands` - Log color commands sent to wearables
+  - `logConnectionStatus` - Log connection status changes
+  - `logSyncEvents` - Log Pharus sync zone events (link established/broken)
+
+### Removed
+- Removed generic logging flags: `logConnections`, `logWearableEvents`, `logDataUpdates`, `logNetworkErrors`, `logProtocolDebug`
+- Flag `logIdCommands` merged with general command logging
+
+---
+
 ## [1.2.3] - 2026-02-06
 
 ### Changed
@@ -161,7 +181,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `wearableIds` - optional ID filter (empty = allow all)
 - `wearableLostTimeout` - timeout seconds
 - Reconnection parameters
-- 5 logging flags
+- 7 logging flags
 
 **Types (Aef prefix)**
 - `FAefDeepSyncColor` - RGB LED color

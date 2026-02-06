@@ -236,14 +236,14 @@ void UAefDeepSyncComponent::UpdateWearableData(const FAefDeepSyncWearableData& N
 	// Update individual display properties
 	UniqueId = NewData.UniqueId;
 	HeartRate = NewData.HeartRate;
-	Color = NewData.Color.ToLinearColor();
+	Color = NewData.Color;
 	Timestamp = NewData.Timestamp;
 	TimeSinceLastUpdate = NewData.TimeSinceLastUpdate;
 	LastUpdateWorldTime = NewData.LastUpdateWorldTime;
 
 	// Store last known values for next comparison
 	LastHeartRate = NewData.HeartRate;
-	LastColor = NewData.Color.ToLinearColor();
+	LastColor = NewData.Color;
 }
 
 void UAefDeepSyncComponent::DetectAndFireChangeEvents(const FAefDeepSyncWearableData& NewData)
@@ -255,7 +255,7 @@ void UAefDeepSyncComponent::DetectAndFireChangeEvents(const FAefDeepSyncWearable
 	}
 
 	// Check Color change - compare as FLinearColor
-	FLinearColor NewLinearColor = NewData.Color.ToLinearColor();
+	FLinearColor NewLinearColor = NewData.Color;
 	if (!NewLinearColor.Equals(LastColor))
 	{
 		OnColorChanged.Broadcast(LastColor, NewLinearColor);

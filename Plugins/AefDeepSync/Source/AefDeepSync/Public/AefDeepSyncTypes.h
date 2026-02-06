@@ -77,9 +77,9 @@ struct AEFDEEPSYNC_API FAefDeepSyncWearableData
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Biometrics")
 	int32 HeartRate = 0;
 
-	/** Current LED color on the wearable device */
+	/** Current LED color on the wearable device (linear color space, directly usable in Blueprints) */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Visual")
-	FAefDeepSyncColor Color;
+	FLinearColor Color = FLinearColor::Black;
 
 	/** Timestamp from server (milliseconds since server start) */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Timing")
@@ -97,8 +97,9 @@ struct AEFDEEPSYNC_API FAefDeepSyncWearableData
 
 	FString ToString() const
 	{
-		return FString::Printf(TEXT("Wearable[Id=%d, HR=%d, %s, Age=%.2fs]"),
-			WearableId, HeartRate, *Color.ToString(), TimeSinceLastUpdate);
+		FColor DisplayColor = Color.ToFColor(true);
+		return FString::Printf(TEXT("Wearable[Id=%d, HR=%d, RGB(%d,%d,%d), Age=%.2fs]"),
+			WearableId, HeartRate, DisplayColor.R, DisplayColor.G, DisplayColor.B, TimeSinceLastUpdate);
 	}
 };
 
@@ -176,23 +177,39 @@ struct AEFDEEPSYNC_API FAefDeepSyncConfig
 	// Logging Flags
 	//--------------------------------------------------------------------------------
 
-	/** Log connection events */
+	/** Log when wearables connect */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
-	bool bLogConnections = true;
+	bool bLogWearableConnected = true;
 
-	/** Log wearable events */
+	/** Log when wearables disconnect/timeout */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
-	bool bLogWearableEvents = true;
+	bool bLogWearableLost = true;
 
-	/** Log every data update (very verbose!) */
+	/** Log every wearable data update (very verbose!) */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
-	bool bLogDataUpdates = false;
+	bool bLogWearableUpdated = false;
+
+	/** Log heart rate value changes */
+	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
+	bool bLogHeartRateChanges = false;
+
+	/** Log color commands sent to wearables */
+	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
+	bool bLogColorCommands = true;
+
+	/** Log ID change commands sent to wearables */
+	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
+	bool bLogIdCommands = true;
+
+	/** Log connection status changes */
+	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
+	bool bLogConnectionStatus = true;
+
+	/** Log Pharus sync events (link established/broken) */
+	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
+	bool bLogSyncEvents = true;
 
 	/** Log network errors */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
 	bool bLogNetworkErrors = true;
-
-	/** Log protocol/JSON parsing details (very verbose!) */
-	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Logging")
-	bool bLogProtocolDebug = false;
 };

@@ -1,10 +1,10 @@
 {
 	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.0",
+	"Version": 4,
+	"VersionName": "1.2.1",
 	"EngineVersion": "5.7.0",
 	"FriendlyName": "Ars Electronica Futurelab - DeepSync",
-	"Description": "",
+	"Description": "Ars Electronica Futurelab DeepSync Plugin",
 	"Category": "Ars Electronica Futurelab",
 	"CreatedBy": "Friedrich Bachinger|Daniel Rammer",
 	"CreatedByURL": "",
@@ -15,6 +15,12 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Plugins": [
+		{
+			"Name": "AefPharus",
+			"Enabled": true
+		}
+	],
 	"Modules": [
 		{
 			"Name": "AefDeepSync",

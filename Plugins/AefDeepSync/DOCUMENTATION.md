@@ -79,13 +79,13 @@ All settings are read from `Config/AefConfig.ini` section `[DeepSync]`.
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `logConnections` | `true` | Log connect/disconnect |
-| `logWearableEvents` | `true` | Log wearable added/lost |
-| `logDataUpdates` | `false` | Log every update (verbose!) |
-| `logColorCommands` | `true` | Log color command sends |
-| `logIdCommands` | `true` | Log ID command sends |
-| `logNetworkErrors` | `true` | Log TCP errors |
-| `logProtocolDebug` | `false` | Log JSON parsing (verbose!) |
+| `logWearableConnected` | `true` | Log when new wearables connect |
+| `logWearableLost` | `true` | Log when wearables timeout/disconnect |
+| `logWearableUpdated` | `false` | Log every wearable data update (WARNING: Very verbose!) |
+| `logHeartRateChanges` | `false` | Log heart rate value changes |
+| `logColorCommands` | `true` | Log color commands sent to wearables |
+| `logConnectionStatus` | `true` | Log connection status changes |
+| `logSyncEvents` | `true` | Log Pharus sync zone events (link established/broken) |
 
 ---
 

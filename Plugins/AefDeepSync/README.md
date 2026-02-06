@@ -2,7 +2,7 @@
 
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-5.7-blue)](https://unrealengine.com)
 
-Unreal Engine plugin for real-time wearable device tracking with heartrate monitoring.
+Unreal Engine plugin for real-time wearable device tracking with heartrate monitoring and Pharus positional sync.
 
 ## Features
 
@@ -10,7 +10,10 @@ Unreal Engine plugin for real-time wearable device tracking with heartrate monit
 - **Wearable Tracking** for any wearable ID (no restrictions)
 - **Heartrate Monitoring** with ~10Hz update rate
 - **Color Control** for wearable LEDs
-- **Blueprint Events** for wearable connect/disconnect
+- **ID Control** - Change wearable IDs at runtime
+- **Pharus Integration** - Sync zones link Pharus tracks with wearables
+- **Sync State Management** - Centralized tracking of Zone/Pharus/Wearable links
+- **Blueprint Events** for wearable connect/disconnect and sync events
 - **AutoStart Option** - start automatically or manually
 - **Configurable Logging** via AefConfig.ini
 
@@ -93,6 +96,59 @@ UAefDeepSyncComponent* DeepSyncComponent;
 
 // In Blueprint: bind events
 DeepSyncComponent->OnHeartRateChanged.AddDynamic(this, &AMyActor::OnHRChanged);
+```
+
+### 5. DeepSync Manager Actor (Recommended)
+
+The easiest way to use DeepSync events in Blueprint:
+
+1. Add → All Classes → **"AEF DeepSync Manager"**
+2. Select the Manager in your level
+3. In **Details panel**, click **(+)** next to events to bind them
+
+**Available Events:**
+- `OnWearableConnected`, `OnWearableLost`, `OnWearableUpdated`
+- `OnConnectionStatusChanged`
+- `OnLinkEstablished`, `OnLinkBroken`
+- `OnZoneRegistered`, `OnZoneUnregistered`
+
+**Blueprint Functions:**
+```
+DeepSyncManager → Get Active Wearables
+DeepSyncManager → Get All Synced Links
+DeepSyncManager → Send Color Command(WearableId, Color)
+DeepSyncManager → Disconnect Link(WearableId)
+```
+
+### 6. Sync Zone Usage (Pharus Integration)
+
+Place `AAefPharusDeepSyncZoneActor` on floor:
+
+1. Add → All Classes → "AEF Pharus DeepSync Zone"
+2. Set `WearableId` to match physical device
+3. Set `ZoneColor` for visual feedback
+4. Set `SyncDuration` (default: 5.0s)
+
+**Event Handling:**
+```
+// In Level Blueprint or Game Mode
+Get DeepSync Subsystem → Bind to OnLinkEstablished
+
+// Event: OnLinkEstablished(FAefSyncedLink Link)
+→ Print: "Synced Track {Link.PharusTrackID} with Wearable {Link.WearableId}"
+→ SendColorCommand(Link.WearableId, Link.ZoneColor)
+```
+
+**Query Links:**
+```cpp
+// Get Pharus actor for a wearable
+AActor* PharusActor = Subsystem->GetPharusActorByWearableId(1001);
+
+// Check if already synced
+bool bBlocked = Subsystem->IsWearableBlocked(1001);
+
+// Manual disconnect
+Subsystem->DisconnectLink(1001);  // → Triggers OnLinkBroken
 ```
 
 ## Server

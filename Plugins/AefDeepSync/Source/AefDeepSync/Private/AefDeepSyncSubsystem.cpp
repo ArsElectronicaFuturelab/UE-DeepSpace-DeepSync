@@ -5,6 +5,7 @@
 ========================================================================*/
 
 #include "AefDeepSyncSubsystem.h"
+#include "AefPharusDeepSyncZoneActor.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "Networking.h"
@@ -26,7 +27,7 @@ void UAefDeepSyncSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	LoadConfiguration();
 
-	if (Config.bLogConnections)
+	if (Config.bLogConnectionStatus)
 	{
 		UE_LOG(LogAefDeepSync, Log, TEXT("AefDeepSync initialized (AutoStart=%s)"),
 			Config.bAutoStart ? TEXT("true") : TEXT("false"));
@@ -41,7 +42,7 @@ void UAefDeepSyncSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UAefDeepSyncSubsystem::Deinitialize()
 {
 	StopDeepSync();
-	if (Config.bLogConnections)
+	if (Config.bLogConnectionStatus)
 	{
 		UE_LOG(LogAefDeepSync, Log, TEXT("AefDeepSync deinitialized"));
 	}
@@ -62,7 +63,7 @@ void UAefDeepSyncSubsystem::Tick(float DeltaTime)
 		ReconnectTimer -= DeltaTime;
 		if (ReconnectTimer <= 0.0f)
 		{
-			if (Config.bLogConnections)
+			if (Config.bLogConnectionStatus)
 			{
 				UE_LOG(LogAefDeepSync, Log, TEXT("Reconnection attempt %d/%d..."),
 					ReconnectAttempts + 1, Config.MaxReconnectAttempts);
@@ -101,6 +102,7 @@ void UAefDeepSyncSubsystem::Tick(float DeltaTime)
 	{
 		ProcessReceivedData();
 		CheckWearableTimeouts(DeltaTime);
+		CheckForBrokenLinks();
 	}
 }
 
@@ -149,7 +151,7 @@ void UAefDeepSyncSubsystem::StopDeepSync()
 	// Fire OnWearableLost for all active wearables
 	for (const auto& Pair : ActiveWearables)
 	{
-		if (Config.bLogWearableEvents)
+		if (Config.bLogWearableLost)
 		{
 			UE_LOG(LogAefDeepSync, Log, TEXT("Wearable lost (stopped): %s"), *Pair.Value.ToString());
 		}
@@ -227,7 +229,7 @@ bool UAefDeepSyncSubsystem::ConnectToServer()
 		return false;
 	}
 
-	if (Config.bLogConnections) UE_LOG(LogAefDeepSync, Log, TEXT("[Receiver] Connected to %s:%d"), *Config.ServerIP, Config.ReceiverPort);
+	if (Config.bLogConnectionStatus) UE_LOG(LogAefDeepSync, Log, TEXT("[Receiver] Connected to %s:%d"), *Config.ServerIP, Config.ReceiverPort);
 
 	// Create sender socket address
 	TSharedRef<FInternetAddr> SenderAddr = SocketSubsystem->CreateInternetAddr();
@@ -250,7 +252,7 @@ bool UAefDeepSyncSubsystem::ConnectToServer()
 	// Blocking connect with timeout
 	bool bConnectResult = SenderSocket->Connect(*SenderAddr);
 	
-	if (Config.bLogConnections)
+	if (Config.bLogConnectionStatus)
 	{
 		UE_LOG(LogAefDeepSync, Log, TEXT("[Sender] Connect() to %s:%d returned %s"), 
 			*Config.ServerIP, Config.SenderPort, bConnectResult ? TEXT("true") : TEXT("false"));
@@ -282,7 +284,7 @@ bool UAefDeepSyncSubsystem::ConnectToServer()
 	// Now switch to non-blocking for send operations
 	SenderSocket->SetNonBlocking(true);
 
-	if (Config.bLogConnections)
+	if (Config.bLogConnectionStatus)
 	{
 		UE_LOG(LogAefDeepSync, Log, TEXT("[Sender] Connected to %s:%d"), *Config.ServerIP, Config.SenderPort);
 	}
@@ -343,7 +345,7 @@ void UAefDeepSyncSubsystem::ProcessReceivedData()
 
 	ReceiveBuffer += FString(BytesRead, UTF8_TO_TCHAR(ReceivedData.GetData()));
 
-	if (Config.bLogProtocolDebug) UE_LOG(LogAefDeepSync, Log, TEXT("Received %d bytes: %s"), BytesRead, *ReceiveBuffer);
+	if (Config.bLogWearableUpdated) UE_LOG(LogAefDeepSync, Log, TEXT("Received %d bytes: %s"), BytesRead, *ReceiveBuffer);
 
 	// Parse messages (delimiter: 'X')
 	int32 DelimiterIndex = 0;
@@ -354,7 +356,7 @@ void UAefDeepSyncSubsystem::ProcessReceivedData()
 
 		if (JsonMessage.IsEmpty()) continue;
 
-		if (Config.bLogProtocolDebug) UE_LOG(LogAefDeepSync, Log, TEXT("Parsing JSON: %s"), *JsonMessage);
+		if (Config.bLogWearableUpdated) UE_LOG(LogAefDeepSync, Log, TEXT("Parsing JSON: %s"), *JsonMessage);
 
 		FAefDeepSyncWearableData WearableData;
 		if (ParseWearableMessage(JsonMessage, WearableData) && IsWearableIdAllowed(WearableData.WearableId))
@@ -382,9 +384,10 @@ bool UAefDeepSyncSubsystem::ParseWearableMessage(const FString& JsonMessage, FAe
 	const TSharedPtr<FJsonObject>* ColorObject;
 	if (JsonObject->TryGetObjectField(TEXT("Color"), ColorObject))
 	{
-		OutData.Color.R = static_cast<uint8>((*ColorObject)->GetIntegerField(TEXT("R")));
-		OutData.Color.G = static_cast<uint8>((*ColorObject)->GetIntegerField(TEXT("G")));
-		OutData.Color.B = static_cast<uint8>((*ColorObject)->GetIntegerField(TEXT("B")));
+		int32 R = (*ColorObject)->GetIntegerField(TEXT("R"));
+		int32 G = (*ColorObject)->GetIntegerField(TEXT("G"));
+		int32 B = (*ColorObject)->GetIntegerField(TEXT("B"));
+		OutData.Color = FLinearColor(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
 	}
 	return true;
 }
@@ -394,7 +397,7 @@ void UAefDeepSyncSubsystem::SetConnectionStatus(EAefDeepSyncConnectionStatus New
 	if (ConnectionStatus != NewStatus)
 	{
 		ConnectionStatus = NewStatus;
-		if (Config.bLogConnections)
+		if (Config.bLogConnectionStatus)
 		{
 			const TCHAR* StatusName = TEXT("Unknown");
 			switch (NewStatus)
@@ -446,7 +449,7 @@ void UAefDeepSyncSubsystem::UpdateWearable(const FAefDeepSyncWearableData& Data)
 		Existing->TimeSinceLastUpdate = 0.0f;
 		Existing->LastUpdateWorldTime = CurrentTime;
 
-		if (Config.bLogDataUpdates) UE_LOG(LogAefDeepSync, Verbose, TEXT("Updated: %s"), *Existing->ToString());
+		if (Config.bLogWearableUpdated) UE_LOG(LogAefDeepSync, Verbose, TEXT("Updated: %s"), *Existing->ToString());
 		OnWearableUpdated.Broadcast(Data.WearableId, *Existing);
 	}
 	else
@@ -457,7 +460,7 @@ void UAefDeepSyncSubsystem::UpdateWearable(const FAefDeepSyncWearableData& Data)
 		NewWearable.LastUpdateWorldTime = CurrentTime;
 		ActiveWearables.Add(Data.WearableId, NewWearable);
 
-		if (Config.bLogWearableEvents) UE_LOG(LogAefDeepSync, Log, TEXT("New wearable: %s"), *NewWearable.ToString());
+		if (Config.bLogWearableConnected) UE_LOG(LogAefDeepSync, Log, TEXT("New wearable: %s"), *NewWearable.ToString());
 		OnWearableConnected.Broadcast(NewWearable);
 	}
 }
@@ -480,7 +483,7 @@ void UAefDeepSyncSubsystem::CheckWearableTimeouts(float DeltaTime)
 		FAefDeepSyncWearableData LostWearable;
 		if (ActiveWearables.RemoveAndCopyValue(WearableId, LostWearable))
 		{
-			if (Config.bLogWearableEvents) UE_LOG(LogAefDeepSync, Log, TEXT("Wearable lost (timeout): %s"), *LostWearable.ToString());
+			if (Config.bLogWearableLost) UE_LOG(LogAefDeepSync, Log, TEXT("Wearable lost (timeout): %s"), *LostWearable.ToString());
 			OnWearableLost.Broadcast(LostWearable);
 		}
 	}
@@ -550,7 +553,54 @@ bool UAefDeepSyncSubsystem::SendColorCommand(int32 WearableId, FAefDeepSyncColor
 		return false;
 	}
 
-	if (Config.bLogDataUpdates) UE_LOG(LogAefDeepSync, Log, TEXT("Color cmd: Wearable %d -> %s (%d bytes sent)"), WearableId, *InColor.ToString(), BytesSent);
+	if (Config.bLogColorCommands) UE_LOG(LogAefDeepSync, Log, TEXT("Color cmd: Wearable %d -> %s (%d bytes sent)"), WearableId, *InColor.ToString(), BytesSent);
+	return true;
+}
+
+bool UAefDeepSyncSubsystem::SendIdCommand(int32 WearableId, int32 NewId)
+{
+	if (!SenderSocket)
+	{
+		UE_LOG(LogAefDeepSync, Warning, TEXT("Cannot send - SenderSocket is null"));
+		return false;
+	}
+
+	if (ConnectionStatus != EAefDeepSyncConnectionStatus::Connected)
+	{
+		UE_LOG(LogAefDeepSync, Warning, TEXT("Cannot send - not connected (status=%d)"), static_cast<int32>(ConnectionStatus));
+		return false;
+	}
+
+	// Check socket connection state
+	ESocketConnectionState SocketState = SenderSocket->GetConnectionState();
+	if (SocketState != ESocketConnectionState::SCS_Connected)
+	{
+		UE_LOG(LogAefDeepSync, Warning, TEXT("Cannot send - SenderSocket not connected (state=%d)"), static_cast<int32>(SocketState));
+		return false;
+	}
+
+	// JSON format with "type" field for polymorphic deserialization on server
+	FString JsonCommand = FString::Printf(TEXT("{\"type\":\"id\",\"Id\":%d,\"NewId\":%d}X"),
+		WearableId, NewId);
+
+	FTCHARToUTF8 Converter(*JsonCommand);
+	int32 BytesSent = 0;
+
+	UE_LOG(LogAefDeepSync, Verbose, TEXT("Sending: %s (%d bytes)"), *JsonCommand, Converter.Length());
+
+	if (!SenderSocket->Send((const uint8*)Converter.Get(), Converter.Length(), BytesSent))
+	{
+		// Get socket error for diagnostics
+		ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
+		ESocketErrors LastError = SocketSubsystem ? SocketSubsystem->GetLastErrorCode() : SE_NO_ERROR;
+		FString ErrorString = SocketSubsystem ? SocketSubsystem->GetSocketError(LastError) : TEXT("Unknown");
+		
+		UE_LOG(LogAefDeepSync, Warning, TEXT("Send failed - Socket error: %s (code=%d, BytesSent=%d)"), 
+			*ErrorString, static_cast<int32>(LastError), BytesSent);
+		return false;
+	}
+
+	if (Config.bLogIdCommands) UE_LOG(LogAefDeepSync, Log, TEXT("ID cmd: Wearable %d -> NewId %d (%d bytes sent)"), WearableId, NewId, BytesSent);
 	return true;
 }
 
@@ -606,15 +656,275 @@ void UAefDeepSyncSubsystem::LoadConfiguration()
 	ConfigFile.GetInt(Section, TEXT("maxReconnectAttempts"), Config.MaxReconnectAttempts);
 
 	// Logging
-	GetBool(TEXT("logConnections"), Config.bLogConnections);
-	GetBool(TEXT("logWearableEvents"), Config.bLogWearableEvents);
-	GetBool(TEXT("logDataUpdates"), Config.bLogDataUpdates);
+	GetBool(TEXT("logWearableConnected"), Config.bLogWearableConnected);
+	GetBool(TEXT("logWearableLost"), Config.bLogWearableLost);
+	GetBool(TEXT("logWearableUpdated"), Config.bLogWearableUpdated);
+	GetBool(TEXT("logHeartRateChanges"), Config.bLogHeartRateChanges);
+	GetBool(TEXT("logColorCommands"), Config.bLogColorCommands);
+	GetBool(TEXT("logIdCommands"), Config.bLogIdCommands);
+	GetBool(TEXT("logConnectionStatus"), Config.bLogConnectionStatus);
+	GetBool(TEXT("logSyncEvents"), Config.bLogSyncEvents);
 	GetBool(TEXT("logNetworkErrors"), Config.bLogNetworkErrors);
-	GetBool(TEXT("logProtocolDebug"), Config.bLogProtocolDebug);
 }
 
 void UAefDeepSyncSubsystem::ReloadConfiguration()
 {
 	LoadConfiguration();
-	if (Config.bLogConnections) UE_LOG(LogAefDeepSync, Log, TEXT("Configuration reloaded"));
+	if (Config.bLogConnectionStatus) UE_LOG(LogAefDeepSync, Log, TEXT("Configuration reloaded"));
 }
+
+//--------------------------------------------------------------------------------
+// Zone Management
+//--------------------------------------------------------------------------------
+
+void UAefDeepSyncSubsystem::RegisterZone(AAefPharusDeepSyncZoneActor* Zone)
+{
+	if (!Zone) return;
+
+	// Check if already registered
+	for (const auto& WeakZone : RegisteredZones)
+	{
+		if (WeakZone.Get() == Zone)
+		{
+			UE_LOG(LogAefDeepSync, Warning, TEXT("Zone already registered: WearableId=%d"), Zone->WearableId);
+			return;
+		}
+	}
+
+	RegisteredZones.Add(Zone);
+	UE_LOG(LogAefDeepSync, Log, TEXT("Zone registered: WearableId=%d (Total: %d)"), Zone->WearableId, RegisteredZones.Num());
+	OnZoneRegistered.Broadcast(Zone);
+}
+
+void UAefDeepSyncSubsystem::UnregisterZone(AAefPharusDeepSyncZoneActor* Zone)
+{
+	if (!Zone) return;
+
+	int32 RemoveIndex = -1;
+	for (int32 i = 0; i < RegisteredZones.Num(); ++i)
+	{
+		if (RegisteredZones[i].Get() == Zone)
+		{
+			RemoveIndex = i;
+			break;
+		}
+	}
+
+	if (RemoveIndex >= 0)
+	{
+		// Break any links using this zone
+		for (int32 i = SyncedLinks.Num() - 1; i >= 0; --i)
+		{
+			if (SyncedLinks[i].Zone.Get() == Zone)
+			{
+				BreakLinkInternal(i, TEXT("ZoneUnregistered"));
+			}
+		}
+
+		RegisteredZones.RemoveAt(RemoveIndex);
+		UE_LOG(LogAefDeepSync, Log, TEXT("Zone unregistered: WearableId=%d (Remaining: %d)"), Zone->WearableId, RegisteredZones.Num());
+		OnZoneUnregistered.Broadcast(Zone);
+	}
+}
+
+TArray<AAefPharusDeepSyncZoneActor*> UAefDeepSyncSubsystem::GetAllZones() const
+{
+	TArray<AAefPharusDeepSyncZoneActor*> Result;
+	for (const auto& WeakZone : RegisteredZones)
+	{
+		if (AAefPharusDeepSyncZoneActor* Zone = WeakZone.Get())
+		{
+			Result.Add(Zone);
+		}
+	}
+	return Result;
+}
+
+AAefPharusDeepSyncZoneActor* UAefDeepSyncSubsystem::GetZoneByWearableId(int32 InWearableId) const
+{
+	for (const auto& WeakZone : RegisteredZones)
+	{
+		if (AAefPharusDeepSyncZoneActor* Zone = WeakZone.Get())
+		{
+			if (Zone->WearableId == InWearableId)
+			{
+				return Zone;
+			}
+		}
+	}
+	return nullptr;
+}
+
+//--------------------------------------------------------------------------------
+// Sync Link Management
+//--------------------------------------------------------------------------------
+
+void UAefDeepSyncSubsystem::NotifySyncCompleted(const FAefPharusSyncResult& Result, AAefPharusDeepSyncZoneActor* Zone, AActor* PharusActor)
+{
+	if (!Result.bSuccess) return;
+
+	// Create new link
+	FAefSyncedLink NewLink;
+	NewLink.LinkId = NextLinkId++;
+	NewLink.Zone = Zone;
+	NewLink.PharusTrackID = Result.PharusTrackID;
+	NewLink.WearableId = Result.WearableId;
+	NewLink.PharusActor = PharusActor;
+	NewLink.ZoneColor = Result.ZoneColor;
+	NewLink.SyncTime = FDateTime::Now();
+
+	SyncedLinks.Add(NewLink);
+	
+	if (Config.bLogSyncEvents) UE_LOG(LogAefDeepSync, Log, TEXT("Link established: %s"), *NewLink.ToString());
+	OnLinkEstablished.Broadcast(NewLink);
+}
+
+bool UAefDeepSyncSubsystem::GetLinkByWearableId(int32 InWearableId, FAefSyncedLink& OutLink) const
+{
+	for (const auto& Link : SyncedLinks)
+	{
+		if (Link.WearableId == InWearableId)
+		{
+			OutLink = Link;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UAefDeepSyncSubsystem::GetLinkByPharusTrackId(int32 TrackID, FAefSyncedLink& OutLink) const
+{
+	for (const auto& Link : SyncedLinks)
+	{
+		if (Link.PharusTrackID == TrackID)
+		{
+			OutLink = Link;
+			return true;
+		}
+	}
+	return false;
+}
+
+AActor* UAefDeepSyncSubsystem::GetPharusActorByWearableId(int32 InWearableId) const
+{
+	for (const auto& Link : SyncedLinks)
+	{
+		if (Link.WearableId == InWearableId)
+		{
+			return Link.PharusActor.Get();
+		}
+	}
+	return nullptr;
+}
+
+//--------------------------------------------------------------------------------
+// Blocking Checks
+//--------------------------------------------------------------------------------
+
+bool UAefDeepSyncSubsystem::IsZoneBlocked(AAefPharusDeepSyncZoneActor* Zone) const
+{
+	if (!Zone) return false;
+
+	for (const auto& Link : SyncedLinks)
+	{
+		if (Link.Zone.Get() == Zone)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UAefDeepSyncSubsystem::IsPharusTrackBlocked(int32 TrackID) const
+{
+	for (const auto& Link : SyncedLinks)
+	{
+		if (Link.PharusTrackID == TrackID)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UAefDeepSyncSubsystem::IsWearableBlocked(int32 InWearableId) const
+{
+	for (const auto& Link : SyncedLinks)
+	{
+		if (Link.WearableId == InWearableId)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//--------------------------------------------------------------------------------
+// Manual Disconnect
+//--------------------------------------------------------------------------------
+
+bool UAefDeepSyncSubsystem::DisconnectLink(int32 InWearableId)
+{
+	for (int32 i = 0; i < SyncedLinks.Num(); ++i)
+	{
+		if (SyncedLinks[i].WearableId == InWearableId)
+		{
+			BreakLinkInternal(i, TEXT("ManualDisconnect"));
+			return true;
+		}
+	}
+	return false;
+}
+
+void UAefDeepSyncSubsystem::DisconnectAllLinks()
+{
+	while (SyncedLinks.Num() > 0)
+	{
+		BreakLinkInternal(SyncedLinks.Num() - 1, TEXT("DisconnectAll"));
+	}
+}
+
+//--------------------------------------------------------------------------------
+// Internal Link Management
+//--------------------------------------------------------------------------------
+
+void UAefDeepSyncSubsystem::CheckForBrokenLinks()
+{
+	for (int32 i = SyncedLinks.Num() - 1; i >= 0; --i)
+	{
+		const FAefSyncedLink& Link = SyncedLinks[i];
+
+		// Check if Pharus actor still exists
+		if (!Link.PharusActor.IsValid())
+		{
+			BreakLinkInternal(i, TEXT("PharusActorDestroyed"));
+			continue;
+		}
+
+		// Check if wearable is still active
+		if (!IsWearableActive(Link.WearableId))
+		{
+			BreakLinkInternal(i, TEXT("WearableLost"));
+			continue;
+		}
+
+		// Check if zone is still valid
+		if (!Link.Zone.IsValid())
+		{
+			BreakLinkInternal(i, TEXT("ZoneDestroyed"));
+			continue;
+		}
+	}
+}
+
+void UAefDeepSyncSubsystem::BreakLinkInternal(int32 Index, const FString& Reason)
+{
+	if (Index < 0 || Index >= SyncedLinks.Num()) return;
+
+	FAefSyncedLink BrokenLink = SyncedLinks[Index];
+	SyncedLinks.RemoveAt(Index);
+
+	if (Config.bLogSyncEvents) UE_LOG(LogAefDeepSync, Log, TEXT("Link broken: %s (Reason: %s)"), *BrokenLink.ToString(), *Reason);
+	OnLinkBroken.Broadcast(BrokenLink, Reason);
+}
+

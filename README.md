@@ -172,9 +172,9 @@ dotnet run -- --ip-app 127.0.0.1 --port-app 43397 -d
 
 Use `-d` flag for simulated wearables during development.
 
-## Documentation
+## Changelog
 
-- [CHANGELOG.md](CHANGELOG.md) - Version history
+- [CHANGELOG.md](Plugins/AefDeepSync/CHANGELOG.md) - Version history
 
 ## License
 

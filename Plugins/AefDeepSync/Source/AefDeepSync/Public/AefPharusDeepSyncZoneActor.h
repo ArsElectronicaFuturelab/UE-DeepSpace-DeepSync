@@ -12,7 +12,7 @@
    3. Adjust ZoneColor for visual feedback
    4. Bind to OnSyncCompleted in Blueprint to set wearable color
 
-   See README.md for detailed examples.
+   See README.md for detailed usage.
 ========================================================================*/
 
 #pragma once

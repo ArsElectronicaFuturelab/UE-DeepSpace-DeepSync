@@ -41,7 +41,8 @@ public class AefDeepSync : ModuleRules
 				"Sockets",
 				"Networking",
 				"Json",
-				"JsonUtilities"
+				"JsonUtilities",
+				"AefUtility"
 			}
 			);
 

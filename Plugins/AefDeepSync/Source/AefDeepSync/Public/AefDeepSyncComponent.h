@@ -12,7 +12,7 @@
    - Dedicated events for HeartRate and Color changes
    - Convenience functions for common operations
 
-   See README.md for detailed usage examples.
+   See README.md for detailed usage.
 ========================================================================*/
 
 #pragma once

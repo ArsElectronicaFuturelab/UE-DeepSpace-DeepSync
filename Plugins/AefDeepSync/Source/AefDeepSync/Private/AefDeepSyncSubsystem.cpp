@@ -6,6 +6,7 @@
 
 #include "AefDeepSyncSubsystem.h"
 #include "AefPharusDeepSyncZoneActor.h"
+#include "AefUtilityBPLibrary.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "Networking.h"
@@ -610,11 +611,15 @@ bool UAefDeepSyncSubsystem::SendIdCommand(int32 WearableId, int32 NewId)
 
 void UAefDeepSyncSubsystem::LoadConfiguration()
 {
-	FString ConfigPath = FPaths::ProjectConfigDir() / TEXT("AefConfig.ini");
+	// Start from the defaults so values removed from the file (e.g. wearableIds) do not survive a reload.
+	Config = FAefDeepSyncConfig();
+
+	// Same resolution as AefPharus: Config/AefConfig.ini or the -dsConfig=<path> override.
+	const FString ConfigPath = UAefUtilityBPLibrary::GetConfigFilePath();
 
 	if (!FPaths::FileExists(ConfigPath))
 	{
-		UE_LOG(LogAefDeepSync, Warning, TEXT("AefConfig.ini not found - using defaults"));
+		UE_LOG(LogAefDeepSync, Warning, TEXT("AefConfig.ini not found (%s) - using defaults"), *ConfigPath);
 		return;
 	}
 

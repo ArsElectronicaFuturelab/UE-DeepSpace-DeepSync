@@ -1,8 +1,28 @@
 # Changelog
 
-All notable changes to AefDeepSync will be documented in this file.
+All notable changes to the AefDeepSync plugin are documented in this file.
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+---
+
+## [3.2.4] - 2026-11-09
+
+### Changed
+- Version aligned with the DeepSpace Starter project version (shared version for project, plugins and `AefConfig.ini`). Previous releases were 1.x.
+- `AefConfig.ini` is now resolved through `AefUtility` (same as AefPharus): default `Config/AefConfig.ini`, override with `-dsConfig=<path>`, staged into packaged builds. New dependency on the `AefUtility` plugin.
+- README rewritten with the same structure as AefPharus and AefUtility.
+  The README documents the plugin as optional, lists every `[DeepSync]` key with its default and corrects older statements:
+  `logIdCommands` and `logNetworkErrors` are read, `logHeartRateChanges` is parsed but has no effect, wearable IDs are any non-negative integer.
+- Struct `FAefDeepSyncColor` uses the Blueprint category `AEF|DeepSync`.
+- The functions of `BP_DeepSync_Functions` all use the Blueprint category `AEF|DeepSync` (two used `AEF|Deep Sync`).
+- Plugin descriptor: description, documentation and support URLs; `.gitignore` aligned with AefPharus (DLL and `.modules` files stay checked in).
+
+### Fixed
+- `ReloadConfiguration()` starts from the defaults. Values removed from `AefConfig.ini` (e.g. entries of `wearableIds`) no longer survive a reload.
+
+### Removed
+- Obsolete redirector assets `BP_AEF_DeepSync_ExampleActor`, `BP_AEF_DeepSync_Pharus` and `AEF_DeepSync_Map`
+  (nothing referenced them; the assets were renamed to `BP_DeepSync_*` / `DeepSync_Map`).
 
 ---
 
@@ -193,7 +213,3 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README.md with quick start
 - CHANGELOG.md (this file)
 - Inline Doxygen comments
-
----
-
-*Copyright (c) Ars Electronica Futurelab, 2025*

@@ -1,16 +1,16 @@
 {
 	"FileVersion": 3,
-	"Version": 4,
-	"VersionName": "1.2.1",
+	"Version": 6,
+	"VersionName": "3.2.4",
 	"EngineVersion": "5.7.0",
 	"FriendlyName": "Ars Electronica Futurelab - DeepSync",
-	"Description": "Ars Electronica Futurelab DeepSync Plugin",
+	"Description": "DeepSync wearables for Unreal Engine: receives heart rate and LED color from the deepsyncwearablev2-server (TCP), sends color and ID commands and links wearables to Pharus tracks with floor sync zones. GameInstance subsystem with INI configuration (AefConfig.ini, resolved by AefUtility).",
 	"Category": "Ars Electronica Futurelab",
 	"CreatedBy": "Friedrich Bachinger|Daniel Rammer",
-	"CreatedByURL": "",
-	"DocsURL": "",
+	"CreatedByURL": "https://ars.electronica.art/futurelab/",
+	"DocsURL": "https://github.com/ArsElectronicaFuturelab/UE-DeepSpace-DeepSync#readme",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "https://github.com/ArsElectronicaFuturelab/UE-DeepSpace-DeepSync/issues",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
@@ -18,6 +18,10 @@
 	"Plugins": [
 		{
 			"Name": "AefPharus",
+			"Enabled": true
+		},
+		{
+			"Name": "AefUtility",
 			"Enabled": true
 		}
 	],

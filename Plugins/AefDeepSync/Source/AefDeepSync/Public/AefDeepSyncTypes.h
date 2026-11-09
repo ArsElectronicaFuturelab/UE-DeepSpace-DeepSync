@@ -9,7 +9,7 @@
    - EAefDeepSyncConnectionStatus: TCP connection state
    - FAefDeepSyncConfig: Runtime configuration (Blueprint-ready)
 
-   See README.md for detailed usage examples.
+   See README.md for detailed usage.
 ========================================================================*/
 
 #pragma once
@@ -32,15 +32,15 @@ struct AEFDEEPSYNC_API FAefDeepSyncColor
 	GENERATED_BODY()
 
 	/** Red component (0-255) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AefDeepSync")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AEF|DeepSync")
 	uint8 R = 0;
 
 	/** Green component (0-255) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AefDeepSync")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AEF|DeepSync")
 	uint8 G = 0;
 
 	/** Blue component (0-255) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AefDeepSync")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AEF|DeepSync")
 	uint8 B = 0;
 
 	FAefDeepSyncColor() = default;
@@ -65,7 +65,7 @@ struct AEFDEEPSYNC_API FAefDeepSyncWearableData
 {
 	GENERATED_BODY()
 
-	/** Wearable ID from the physical device (0-15) */
+	/** Wearable ID from the physical device (any non-negative integer) */
 	UPROPERTY(BlueprintReadOnly, Category = "AEF|DeepSync|Identity")
 	int32 WearableId = -1;
 

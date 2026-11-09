@@ -12,7 +12,7 @@
    3. Bind to OnWearableConnected/OnWearableLost events
    4. Use GetActiveWearables() to access current data
 
-   See README.md for detailed API reference.
+   See README.md for the API reference.
 ========================================================================*/
 
 #pragma once

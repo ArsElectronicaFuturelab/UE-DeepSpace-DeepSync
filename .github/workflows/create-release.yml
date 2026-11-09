@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - UE-5.7-DeepSpace-DeepSync
     paths:
       - Plugins/AefDeepSync/AefDeepSync.uplugin
   workflow_dispatch:
